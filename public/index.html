@@ -52,17 +52,20 @@
     
         // WebSocket Connection
         function startWebSocket() {
-            ws = new WebSocket("ws://localhost:3000");
-    
+            // Detect if running on HTTPS, and use WSS instead of WS
+            const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+            const wsUrl = wsProtocol + window.location.host; // Uses the Render domain
+
+            const ws = new WebSocket(wsUrl);
+
             ws.onmessage = event => {
                 showNotification(event.data);
             };
-    
-            ws.onopen = () => console.log("Connected to WebSocket server.");
-            ws.onclose = () => console.log("WebSocket connection closed.");
+
+            ws.onopen = () => console.log("✅ Connected to WebSocket server at " + wsUrl);
+            ws.onclose = () => console.log("❌ WebSocket connection closed.");
         }
-    
-        // Show Web Notification
+
         function showNotification(message) {
             if (Notification.permission === "granted") {
                 new Notification("STOPBARS Update", {
@@ -71,6 +74,10 @@
                 });
             }
         }
+
+    // Auto-start WebSocket when the page loads
+    startWebSocket();
+
     </script>
     
 </body>
