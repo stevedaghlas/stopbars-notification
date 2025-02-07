@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STOPBARS Notifier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #status {
+            font-size: 18px;
+            margin-top: 20px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>STOPBARS Notifier</h1>
+    <p>Click the button below to enable notifications.</p>
+    <button id="notify-btn">Enable Notifications</button>
+    <p id="status"></p>
+
+    <script>
+        const notifyBtn = document.getElementById("notify-btn");
+        const statusText = document.getElementById("status");
+    
+        let ws;
+    
+        // Check if notifications were previously granted
+        if (Notification.permission === "granted") {
+            statusText.textContent = "✅ Ready! Keep this tab open.";
+            notifyBtn.style.display = "none";
+            startWebSocket();
+        }
+    
+        // Request Notification Permission
+        notifyBtn.addEventListener("click", () => {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    localStorage.setItem("notifications_enabled", "true"); // Save state
+                    statusText.textContent = "✅ Ready! Keep this tab open.";
+                    notifyBtn.style.display = "none";
+                    startWebSocket();
+                } else {
+                    statusText.textContent = "❌ Notifications are blocked.";
+                }
+            });
+        });
+    
+        // WebSocket Connection
+        function startWebSocket() {
+            ws = new WebSocket("ws://localhost:3000");
+    
+            ws.onmessage = event => {
+                showNotification(event.data);
+            };
+    
+            ws.onopen = () => console.log("Connected to WebSocket server.");
+            ws.onclose = () => console.log("WebSocket connection closed.");
+        }
+    
+        // Show Web Notification
+        function showNotification(message) {
+            if (Notification.permission === "granted") {
+                new Notification("STOPBARS Update", {
+                    body: message,
+                    icon: "icon.png" // Optional: Add an icon
+                });
+            }
+        }
+    </script>
+    
+</body>
+</html>
